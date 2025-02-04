@@ -1,0 +1,64 @@
+
+version: '3'
+
+services:
+
+  db:
+    image: mysql:5.7
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: newsletter
+      MYSQL_USER: user
+      MYSQL_PASSWORD: secret
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./newsletter.sql:/data/application/init.sql
+      - db_data:/var/lib/mysql
+
+    command: --init-file /data/application/init.sql
+    networks:
+      - newsletter-network
+
+  api:
+    container_name: api
+    build: ./api
+    restart: always
+    ports:
+      - "3333:80"
+    volumes:
+      - ./docker/config/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./api:/var/www/html
+
+    depends_on:
+      - db
+    networks:
+      - newsletter-network
+
+  client:
+    container_name: client
+    build: ./client
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+    environment:
+      - REACT_APP_API_URL=http://localhost:3333
+    links:
+      - api
+    depends_on:
+      - api
+    networks:
+      - newsletter-network
+
+networks:
+  newsletter-network:
+    driver: bridge
+
+volumes:
+  db_data:
+

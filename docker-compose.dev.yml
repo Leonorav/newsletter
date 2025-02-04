@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+
+
+  api:
+
+    volumes:
+      - ./docker/config/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./api:/var/www/html
+      - /var/www/html/vendor
+
